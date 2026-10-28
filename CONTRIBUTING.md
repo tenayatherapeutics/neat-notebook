@@ -28,9 +28,9 @@ python -m pip install '.[dev]'
 The source distribution includes prebuilt assets. `python -m build` builds the
 wheel from that source distribution, not just from the working tree. `jlpm` is
 provided by `jupyter-builder`; no separate global Yarn installation is required.
-The project has no Makefile or Rust component. Use its native build commands.
-Build resolutions select the published JupyterLab 4.6.4 SDK rather than partially
-published prereleases. Update these pins and the lockfile together with host tests.
+The project uses the native commands above; it has no Makefile or Rust component.
+Build resolutions pin the JupyterLab 4.6.4 SDK. Update these pins and the lockfile
+together with host tests.
 
 For iterative development, link the built assets with
 `jupyter-builder develop . --overwrite`, rebuild after changes, and refresh
@@ -43,30 +43,30 @@ JupyterLab, ipykernel, pytest, and pytest-xdist. For example, using a wheel buil
 above:
 
 ```sh
-python -m venv /tmp/neat-host
-/tmp/neat-host/bin/python -m pip install \
+NEAT_HOST=$(mktemp -d)
+NEAT_VERSION=$(node -p 'require("./package.json").version')
+python -m venv "$NEAT_HOST"
+"$NEAT_HOST/bin/python" -m pip install \
   'notebook==7.5.6' 'jupyterlab==4.5.7' ipykernel pytest pytest-xdist \
-  dist/neat_notebook-0.1.4-py3-none-any.whl
-/tmp/neat-host/bin/python -m pip check
+  "dist/neat_notebook-${NEAT_VERSION}-py3-none-any.whl"
+"$NEAT_HOST/bin/python" -m pip check
 ```
 
 Run the distribution tests from outside this checkout so Python imports the
 installed package rather than the source directory:
 
 ```sh
-# Replace /absolute/path/to/neat-notebook with your checkout path.
-cd /tmp
-/tmp/neat-host/bin/python -m pytest -n 12 /absolute/path/to/neat-notebook/tests
+NEAT_REPO=$PWD
+(cd /tmp && "$NEAT_HOST/bin/python" -m pytest -n 12 "$NEAT_REPO/tests")
 ```
 
 On Windows use the environment's `Scripts/python.exe` instead of `bin/python`.
-Use a unique temporary environment path if `/tmp/neat-host` already exists.
 
 From the project root, run the real-kernel browser tests:
 
 ```sh
 jlpm exec playwright install chromium firefox
-NEAT_NOTEBOOK_PYTHON=/tmp/neat-host/bin/python jlpm test:ui --workers=4
+NEAT_NOTEBOOK_PYTHON="$NEAT_HOST/bin/python" jlpm test:ui --workers=4
 ```
 
 Linux CI installs browser system dependencies with `playwright install --with-deps`.
@@ -74,9 +74,9 @@ Each test server gets its own temporary notebook, config, data, and runtime
 directories. Only loopback test servers are unauthenticated. Never deploy
 `ui-tests/jupyter_server_config.py` as a real server configuration.
 
-The suite measures a Neat-disabled baseline before classifying the documented
-Notebook 7.6.3 startup issue. Do not broaden that exception or suppress page
-errors to make a test pass. All unexpected browser errors must fail.
+Notebook 7.6.3 has a shortcut-schema startup race. The suite records that exact
+error with Neat disabled before classifying it as a host defect. Do not broaden
+the exception or suppress unexpected browser errors.
 
 ## Scope and review checklist
 
@@ -92,8 +92,8 @@ errors to make a test pass. All unexpected browser errors must fail.
   accepting visual changes; do not mask an unexpected regression.
 - Never submit sensitive notebooks or production data as fixtures.
 
-CI tests minimum and current supported host pairs using the same built wheel.
-New host releases should be evaluated before changing the documented matrix.
+CI tests both documented host pairs using the same built wheel.
+Test new host releases before changing the documented matrix.
 Use `jlpm format` for formatting, and rerun `jlpm lint:check` afterward.
 
 Publication is a separate, protected operation. See [RELEASING.md](RELEASING.md).

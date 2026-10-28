@@ -1,25 +1,3 @@
----
-version: alpha
-name: Neat Notebook
-description: A quiet instrument ribbon above the active Jupyter notebook cell.
-omitted:
-  - section: colors
-    reason: Jupyter theme variables are the canonical runtime colors; no fixed palette is introduced.
-  - section: typography
-    reason: Jupyter supplies the UI font family and size, including locale fallbacks.
-  - section: rounded
-    reason: The ribbon uses the host border radius; small inputs inherit the existing 2px treatment.
-spacing:
-  ribbon-gap: 8px
-  compact-gap: 6px
-  minimum-height: 28px
-  vertical-padding: 2px
-components:
-  inspector: {}
-  task-label: {}
-  details-disclosure: {}
----
-
 # Neat Notebook design contract
 
 ## Direction and ownership
@@ -27,11 +5,12 @@ components:
 An instrument label attached to a notebook cell, not an application shell or a
 new brand skin. Researchers and notebook authors need the active cell's purpose
 and execution state without losing their place. Preserve the existing Jupyter
-interaction language in both Notebook and JupyterLab. No market-specific visual
-assumptions are made; strings use Jupyter's translator with English fallback.
+interaction language in both Notebook and JupyterLab. Strings use Jupyter's
+translator with English fallback.
 
-This document mirrors the host's canonical tokens (Model B); it does not generate
-or replace them. `style/base.css` is the component styling source of truth.
+`style/base.css` defines the component's styling using Jupyter theme variables.
+The ribbon uses an 8px gap, 28px minimum height, 2px vertical padding, and 20px
+line height.
 
 | Role                     | Runtime token or treatment                                                    |
 | ------------------------ | ----------------------------------------------------------------------------- |
@@ -70,13 +49,6 @@ dates use wall-clock time. Both are session-local and disappear after reload.
 Timed statuses use their execution marker and timer on narrow screens; other
 statuses keep their text. The full status always stays available to screen
 readers in the polite live region.
-
-## Canonical UI Map
-
-| Capability | Canonical owner                  | Source of truth            | Allowed variants                                           | Verification                                   |
-| ---------- | -------------------------------- | -------------------------- | ---------------------------------------------------------- | ---------------------------------------------- |
-| Form       | CellInspector inline task editor | src/index.ts               | Save, cancel, clear, read-only; no separate form framework | Browser keyboard and metadata tests            |
-| Scrollbar  | Host notebook widget             | JupyterLab Notebook layout | No extension-owned scrolling surface                       | Sticky-position and narrow-width browser tests |
 
 ## Boundaries and failure states
 
