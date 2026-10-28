@@ -8,8 +8,7 @@ Harassment, discrimination, threats, and disclosure of another person's private
 information are not acceptable. Do not post confidential notebooks, credentials,
 or sensitive data while asking for help.
 
-Maintainer Farshad Farshidfar may edit or remove harmful content, close abusive
-threads, or restrict participation to protect contributors. Report concerns
-privately to [farshidfar@gmail.com](mailto:farshidfar@gmail.com). Reports will be
-handled with care and without retaliation; confidentiality cannot be guaranteed
-beyond the limits of the hosting platform or applicable obligations.
+Maintainer Farshad Farshidfar moderates harmful content and abusive
+threads and restricts participation to protect contributors. Report concerns
+privately to [farshidfar@gmail.com](mailto:farshidfar@gmail.com). Retaliation
+against people who report concerns is prohibited.
