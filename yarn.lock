@@ -3942,11 +3942,11 @@ __metadata:
     eslint: ^10.0.0
     globals: ^16.0.0
     prettier: ^2.8.8
-    react: ^18.2.0
+    react: ^19.3.1
     typescript: ~5.9.3
     typescript-eslint: ^8.0.0
   peerDependencies:
-    react: ^18.2.0
+    react: ^19.3.1
   languageName: unknown
   linkType: soft
 
@@ -4253,6 +4253,13 @@ __metadata:
   dependencies:
     loose-envify: ^1.1.0
   checksum: a27bcfa8ff7c15a1e50244ad0d0c1cb2ad4375eeffefd266a64889beea6f6b64c4966c9b37d14ee32d6c9fcd5aa6ba183b6988167ab4d127d13e7cb5b386a376
+  languageName: node
+  linkType: hard
+
+"react@npm:^19.3.1":
+  version: 19.3.1
+  resolution: "react@npm:19.3.1"
+  checksum: 08dc4ff4bf67184da3bc91ec89a03e6526479400270f7bbfd79b4ef36245a341a0861d0ce5e31443b6b9d17dd1006d95555e5d1ebf0c53a5f529947dc3c74dfb
   languageName: node
   linkType: hard
 
