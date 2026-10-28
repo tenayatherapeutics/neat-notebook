@@ -28,7 +28,7 @@ def test_public_metadata():
 
 def test_published_description():
     description = distribution("neat-notebook").metadata.get_payload()
-    readme = (Path(__file__).resolve().parents[1] / "README.md").read_text()
+    readme = (Path(__file__).resolve().parents[1] / "README.md").read_text(encoding="utf-8")
     assert description.strip() == readme.strip()
     assert "python -m pip install neat-notebook" in description
     assert "The first PyPI release is being prepared" not in description
