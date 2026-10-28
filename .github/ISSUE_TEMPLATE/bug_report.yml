@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a reproducible problem with Neat Notebook
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Use a small synthetic example. Do not share confidential notebooks or credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions and platform
+      description: Include Neat Notebook, Notebook/JupyterLab, Python, browser, and operating system versions.
+    validations:
+      required: true

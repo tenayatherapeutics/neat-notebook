@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest a focused improvement
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What notebook task would this help with?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested behavior and alternatives
+    validations:
+      required: true

@@ -1,0 +1,4 @@
+{
+  "extends": "./ui-tests/tsconfig.json",
+  "include": ["src/**/*.ts", "ui-tests/**/*.ts", "playwright.config.ts"]
+}

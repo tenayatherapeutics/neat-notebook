@@ -1,0 +1,61 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      index:
+        description: Package index (configure its Trusted Publisher first)
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ inputs.index }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require a version tag from this repository's main branch
+        run: |
+          test "$GITHUB_REPOSITORY" = tenayatherapeutics/neat-notebook
+          node -e 'const p=require("./package.json"); if(process.env.GITHUB_REF !== `refs/tags/v${p.version}`) throw Error("Run this workflow on the matching version tag, not a branch");'
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+  checks:
+    needs: validate
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: Publish validated artifacts
+    needs: [validate, checks]
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.index }}
+      url: https://${{ inputs.index == 'testpypi' && 'test.pypi.org' || 'pypi.org' }}/p/neat-notebook
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: extension-artifacts
+          path: dist
+      - name: Upload to TestPyPI
+        if: inputs.index == 'testpypi'
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+      - name: Upload to PyPI
+        if: inputs.index == 'pypi'
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1

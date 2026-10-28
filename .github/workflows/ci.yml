@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+      - name: Install build tools
+        run: python -m pip install 'jupyter-builder>=1.2.4,<2' build twine 'ruff>=0.16.1,<0.17'
+      - name: Install locked JavaScript dependencies
+        run: jlpm install --immutable
+      - name: Lint and type-check
+        run: |
+          jlpm lint:check
+          jlpm test:types
+      - name: Build wheel from the source distribution
+        run: |
+          python -m build
+          python -m twine check --strict dist/*
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: extension-artifacts
+          path: dist/*
+          if-no-files-found: error
+
+  compatibility:
+    name: Compatibility (Python ${{ matrix.python }}, Notebook ${{ matrix.notebook }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python: '3.11'
+            notebook: '7.5.6'
+            lab: '4.5.7'
+          - python: '3.14'
+            notebook: '7.6.3'
+            lab: '4.6.4'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: extension-artifacts
+          path: dist
+      - name: Install the wheel without Node.js on PATH
+        env:
+          NOTEBOOK_VERSION: ${{ matrix.notebook }}
+          LAB_VERSION: ${{ matrix.lab }}
+        run: |
+          python -m venv "$RUNNER_TEMP/neat-host"
+          env PATH="$RUNNER_TEMP/neat-host/bin" "$RUNNER_TEMP/neat-host/bin/python" -m pip install \
+            "notebook==$NOTEBOOK_VERSION" "jupyterlab==$LAB_VERSION" ipykernel \
+            pytest pytest-xdist dist/*.whl
+          "$RUNNER_TEMP/neat-host/bin/python" -m pip check
+          "$RUNNER_TEMP/neat-host/bin/jupyter" labextension list
+      - name: Test the installed distribution
+        working-directory: ${{ runner.temp }}
+        run: '"$RUNNER_TEMP/neat-host/bin/python" -m pytest -n 12 "$GITHUB_WORKSPACE/tests"'
+      - name: Install browser test tools
+        run: |
+          python -m pip install 'jupyter-builder>=1.2.4,<2'
+          jlpm install --immutable
+          jlpm exec playwright install --with-deps chromium firefox
+      - name: Test Notebook and JupyterLab in Chromium and Firefox
+        run: NEAT_NOTEBOOK_PYTHON="$RUNNER_TEMP/neat-host/bin/python" jlpm test:ui --workers=4
+      - name: Retain browser evidence
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: browser-evidence-python-${{ matrix.python }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
